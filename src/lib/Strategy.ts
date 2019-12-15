@@ -29,12 +29,10 @@ export class OIDCStrategy extends Strategy {
       response_types: config.response_types,
       redirect_uris: config.redirect_uris
     });
-    console.log("strategy initialized");
     return new OIDCStrategy(client, config.scopes);
   };
 
   authenticate(req: Request, opts: any) {
-    console.log("authenticate");
     if (req.query["code"]) {
       return this.callback(req, opts);
     }
