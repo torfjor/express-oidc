@@ -1,0 +1,35 @@
+{
+  "name": "divein-auth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/body-parser": "^1.17.1",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.2",
+    "@types/express-session": "^1.15.16",
+    "@types/mongodb": "^3.3.12",
+    "@types/mongoose": "^5.5.34",
+    "@types/openid-client": "^3.7.0",
+    "@types/passport": "^1.0.2",
+    "@types/passport-local": "^1.0.33",
+    "typescript": "^3.7.3"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "connect-mongo": "^3.2.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "mongodb": "^3.4.0",
+    "openid-client": "^3.9.0",
+    "passport": "^0.4.1",
+    "passport-local": "^1.0.0"
+  }
+}
