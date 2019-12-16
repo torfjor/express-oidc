@@ -47,6 +47,8 @@ export class OIDCStrategy extends Strategy {
         scope: this.scopes,
         state
       });
+      console.log(this.scopes);
+      console.log(url);
       this.redirect(url);
     });
   }
