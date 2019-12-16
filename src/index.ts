@@ -51,6 +51,7 @@ const ensureAuthenticated: express.Handler = (req, res, next) => {
   if (req.isAuthenticated()) return next();
   res.redirect("/auth/fail");
 };
+
 app.get(
   "/",
   passport.authenticate("passport-openid-connect", {
@@ -59,13 +60,7 @@ app.get(
   })
 );
 
-app.get(
-  "/auth/login",
-  passport.authenticate("passport-openid-connect", {
-    successReturnToOrRedirect: "/auth/success",
-    failureRedirect: "/auth/fail"
-  })
-);
+app.get("/auth/login", passport.authenticate("passport-openid-connect"));
 
 app.get("/auth/success", ensureAuthenticated, (req, res) => {
   res.send(req.user);
