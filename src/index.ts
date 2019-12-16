@@ -54,7 +54,7 @@ const ensureAuthenticated: express.Handler = (req, res, next) => {
 
 // Handlers
 app.get(
-  "/",
+  "/callback",
   passport.authenticate("passport-openid-connect", {
     successReturnToOrRedirect: "/auth/success",
     failureRedirect: "/auth/fail"
