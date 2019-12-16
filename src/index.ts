@@ -66,6 +66,7 @@ app.get("/auth/login", (req, res, next) => {
 });
 
 app.get("/auth/success", ensureAuthenticated, (req, res) => {
+  console.log(req.authInfo);
   res.send(req.user);
 });
 
