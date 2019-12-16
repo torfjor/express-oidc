@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import mongoStore from "connect-mongo";
 import bodyParser from "body-parser";
 import { OIDCStrategy } from "./lib/Strategy";
+import { parentPort } from "worker_threads";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -50,6 +51,13 @@ const ensureAuthenticated: express.Handler = (req, res, next) => {
   if (req.isAuthenticated()) return next();
   res.redirect("/auth/fail");
 };
+app.get(
+  "/",
+  passport.authenticate("passport-openid-connect", {
+    successReturnToOrRedirect: "/auth/success",
+    failureRedirect: "/auth/fail"
+  })
+);
 
 app.get(
   "/auth/login",
