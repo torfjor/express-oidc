@@ -62,8 +62,8 @@ export class OIDCStrategy extends Strategy {
         params,
         { state: req.session.auth_state }
       );
-      console.log(tokenSet.id_token);
-      return this.success(tokenSet.claims(), { token: tokenSet.id_token });
+      req.session.token = tokenSet.id_token;
+      return this.success(tokenSet.claims());
     } catch (error) {
       console.error(error);
       return this.fail(error.message);
