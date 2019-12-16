@@ -43,6 +43,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
+
 // Middleware
 const ensureAuthenticated: express.Handler = (req, res, next) => {
   if (req.isAuthenticated()) return next();
