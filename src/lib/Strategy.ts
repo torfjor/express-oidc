@@ -47,8 +47,6 @@ export class OIDCStrategy extends Strategy {
         scope: this.scopes,
         state
       });
-      console.log(this.scopes);
-      console.log(url);
       this.redirect(url);
     });
   }
@@ -64,6 +62,7 @@ export class OIDCStrategy extends Strategy {
         params,
         { state: req.session.auth_state }
       );
+      console.log(tokenSet.id_token);
       return this.success(tokenSet.claims(), { token: tokenSet.id_token });
     } catch (error) {
       console.error(error);
