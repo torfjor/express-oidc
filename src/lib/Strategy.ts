@@ -33,7 +33,7 @@ export class OIDCStrategy extends Strategy {
   };
 
   authenticate(req: Request, opts: any) {
-    if (req.query["code"]) {
+    if (req.query["code"] || req.query["error"]) {
       return this.callback(req, opts);
     }
     if (!req.session) {

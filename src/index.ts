@@ -46,12 +46,13 @@ passport.deserializeUser((user, done) => {
   done(null, user);
 });
 
-// Handlers
+// Middleware
 const ensureAuthenticated: express.Handler = (req, res, next) => {
   if (req.isAuthenticated()) return next();
   res.redirect("/auth/fail");
 };
 
+// Handlers
 app.get(
   "/",
   passport.authenticate("passport-openid-connect", {
