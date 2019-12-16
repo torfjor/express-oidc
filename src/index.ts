@@ -74,6 +74,10 @@ app.get("/auth/logout", (req, res) => {
   res.redirect("https://app.divein.no");
 });
 
+app.get("/auth/fail", (req, res) => {
+  res.status(401).json({ error: "Failed to login" });
+});
+
 // Listen and serve
 (async () => {
   const issuerHost = process.env.OPENID_ENDPOINT || "";
