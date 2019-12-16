@@ -1,6 +1,6 @@
 {
   "name": "divein-auth",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,6 @@
     "@types/mongoose": "^5.5.34",
     "@types/openid-client": "^3.7.0",
     "@types/passport": "^1.0.2",
-    "@types/passport-local": "^1.0.33",
     "typescript": "^3.7.3"
   },
   "dependencies": {
@@ -31,7 +30,6 @@
     "express-session": "^1.17.0",
     "mongodb": "^3.4.0",
     "openid-client": "^3.9.0",
-    "passport": "^0.4.1",
-    "passport-local": "^1.0.0"
+    "passport": "^0.4.1"
   }
 }

@@ -1,11 +1,10 @@
-import express, { Handler } from "express";
+import express from "express";
 import passport from "passport";
 import session from "express-session";
 import dotenv from "dotenv";
 import mongoStore from "connect-mongo";
 import bodyParser from "body-parser";
 import { OIDCStrategy } from "./lib/Strategy";
-import { parentPort } from "worker_threads";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -19,6 +18,11 @@ if (!dbUrl) throw new Error("failed to get db URL from environment");
 const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret)
   throw new Error("failed to get session secret from environment");
+const successRedirect = process.env.SUCCESS_REDIRECT;
+const failureRedirect = process.env.FAILURE_REDIRECT;
+if (!successRedirect || !failureRedirect) {
+  throw new Error("failed to get redirect urls from environment");
+}
 
 const app = express();
 const Store = mongoStore(session);
@@ -26,7 +30,7 @@ const Store = mongoStore(session);
 app.set("trust proxy", true);
 app.use(
   session({
-    store: new Store({ url: dbUrl }),
+    store: new Store({ url: dbUrl, ttl: 60 }),
     secret: sessionSecret,
     saveUninitialized: false,
     resave: false,
@@ -39,17 +43,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-passport.serializeUser((user, done) => {
-  done(null, user);
-});
-passport.deserializeUser((user, done) => {
-  done(null, user);
-});
-
 // Middleware
 const ensureAuthenticated: express.Handler = (req, res, next) => {
   if (req.isAuthenticated()) return next();
-  res.redirect("/auth/fail");
+  res.redirect(failureRedirect);
 };
 
 // Handlers
@@ -57,28 +54,15 @@ app.get(
   "/callback",
   passport.authenticate("passport-openid-connect", {
     successReturnToOrRedirect: "/auth/success",
-    failureRedirect: "/auth/fail"
+    failureRedirect
   })
 );
 
-app.get("/auth/login", (req, res, next) => {
-  passport.authenticate("passport-openid-connect")(req, res);
-});
+app.get("/auth/login", passport.authenticate("passport-openid-connect"));
 
 app.get("/auth/success", ensureAuthenticated, (req, res) => {
-  res.json({
-    user: req.user,
-    token: req.session ? req.session.token : undefined
-  });
-});
-
-app.get("/auth/logout", (req, res) => {
-  req.logout();
-  res.redirect("https://app.divein.no");
-});
-
-app.get("/auth/fail", (req, res) => {
-  res.status(401).json({ error: "Failed to login" });
+  const token = req.session!.token;
+  res.redirect(successRedirect + `/token?p=${token}`);
 });
 
 // Listen and serve
