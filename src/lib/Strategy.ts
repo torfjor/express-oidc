@@ -39,14 +39,17 @@ export class OIDCStrategy extends Strategy {
     if (!req.session) {
       return this.fail("No session");
     }
+
     const state = generators.state();
     req.session.auth_state = state;
-    return this.redirect(
-      this.client.authorizationUrl({
-        scope: this.scopes,
-        state
-      })
-    );
+    req.session.save(() => {
+      this.redirect(
+        this.client.authorizationUrl({
+          scope: this.scopes,
+          state
+        })
+      );
+    });
   }
 
   async callback(req: Request, opts: any) {
@@ -60,7 +63,7 @@ export class OIDCStrategy extends Strategy {
         params,
         { state: req.session.auth_state }
       );
-      return this.success(tokenSet.claims());
+      return this.success(tokenSet.claims(), { token: tokenSet.id_token });
     } catch (error) {
       console.error(error);
       return this.fail(error.message);

@@ -61,7 +61,9 @@ app.get(
   })
 );
 
-app.get("/auth/login", passport.authenticate("passport-openid-connect"));
+app.get("/auth/login", (req, res, next) => {
+  passport.authenticate("passport-openid-connect")(req, res);
+});
 
 app.get("/auth/success", ensureAuthenticated, (req, res) => {
   res.send(req.user);
