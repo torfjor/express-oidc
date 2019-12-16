@@ -70,7 +70,7 @@ app.get("/auth/login", passport.authenticate("passport-openid-connect"));
 
 app.get("/auth/success", ensureAuthenticated, (req, res) => {
   const token = req.session!.token;
-  res.redirect(successRedirect + `/token?p=${token}`);
+  res.redirect(successRedirect + `/t?p=${token}`);
 });
 
 // Listen and serve
