@@ -43,12 +43,11 @@ export class OIDCStrategy extends Strategy {
     const state = generators.state();
     req.session.auth_state = state;
     req.session.save(() => {
-      this.redirect(
-        this.client.authorizationUrl({
-          scope: this.scopes,
-          state
-        })
-      );
+      const url = this.client.authorizationUrl({
+        scope: this.scopes,
+        state
+      });
+      this.redirect(url);
     });
   }
 
