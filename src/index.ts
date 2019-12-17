@@ -1,5 +1,6 @@
 import express from "express";
 import session from "express-session";
+import cors from "cors";
 import dotenv from "dotenv";
 import mongoStore from "connect-mongo";
 import createError from "http-errors";
@@ -65,6 +66,16 @@ const ensureSession: express.Handler = (req, res, next) => {
   );
 
   // Handlers
+  app.use(
+    "/auth",
+    cors({
+      origin: [
+        "https://app.divein.no",
+        "http://localhost:8080",
+        "http://127.0.0.1:8080"
+      ]
+    })
+  );
   app.get("/auth/token", ensureSession, async (req, res, next) => {
     const { code, state } = req.query;
 
