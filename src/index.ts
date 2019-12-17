@@ -58,7 +58,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
     try {
       const token = await client.login(req);
 
-      return res.json(token.id_token);
+      return res.json(token);
     } catch (error) {
       return next(createError(401, error));
     }
