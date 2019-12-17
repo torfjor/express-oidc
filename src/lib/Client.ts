@@ -15,6 +15,11 @@ interface IOIDCConfig {
   response_types: ResponseType[];
 }
 
+type AuthenticateResponse = {
+  state: string;
+  url: string;
+};
+
 export class OIDCClient {
   constructor(private client: Client, private scopes: string) {}
 
@@ -29,33 +34,28 @@ export class OIDCClient {
     return new OIDCClient(client, config.scopes);
   };
 
-  authenticate(req: Request): string {
-    if (!req.session) {
-      throw new Error("no session");
-    }
-
+  authenticate(req: Request): AuthenticateResponse {
     const state = generators.state();
-    req.session.auth_state = state;
-    return this.client.authorizationUrl({
+    const url = this.client.authorizationUrl({
       scope: this.scopes,
       state
     });
+
+    return {
+      state,
+      url
+    };
   }
 
-  async login(req: Request): Promise<TokenSet> {
-    if (!req.session || !req.session.auth_state) {
-      throw new Error("broken / no session");
-    }
-
-    if (!req.query["code"] || !req.query["state"]) {
-      throw new Error("missing code and/or state parameter");
-    }
-
-    const params = this.client.callbackParams(req);
+  async login(
+    code: string,
+    state: string,
+    savedState: string
+  ): Promise<TokenSet> {
     const tokenSet = await this.client.callback(
       this.client.metadata.redirect_uris![0],
-      params,
-      { state: req.session.auth_state }
+      { code, state },
+      { state: savedState }
     );
     return tokenSet;
   }

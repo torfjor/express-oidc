@@ -53,21 +53,33 @@ app.use(bodyParser.urlencoded({ extended: true }));
     issuerHost
   );
 
-  // Handlers
-  app.get("/auth/token", async (req, res, next) => {
-    try {
-      const token = await client.login(req);
+  // Middleware
+  const ensureSession: express.Handler = (req, res, next) => {
+    if (!req.session) return next(createError(400, "no session"));
+    return next();
+  };
 
+  // Handlers
+  app.get("/auth/token", ensureSession, async (req, res, next) => {
+    const { code, state } = req.query;
+
+    if (!req.session!.state) {
+      return next(createError(400, "session missing state"));
+    }
+    const savedState = req.session!.state;
+
+    try {
+      const token = await client.login(code, state, savedState);
       return res.json(token);
     } catch (error) {
       return next(createError(401, error));
     }
   });
 
-  app.get("/auth/login", (req, res, next) => {
+  app.get("/auth/login", ensureSession, (req, res, next) => {
     try {
-      const url = client.authenticate(req);
-
+      const { url, state } = client.authenticate(req);
+      req.session!.state = state;
       return res.redirect(url);
     } catch (error) {
       return next(createError(500, error));
