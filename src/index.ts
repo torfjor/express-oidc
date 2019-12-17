@@ -2,26 +2,33 @@ import express from "express";
 import session from "express-session";
 import dotenv from "dotenv";
 import mongoStore from "connect-mongo";
-import bodyParser from "body-parser";
 import createError from "http-errors";
-import { OIDCClient } from "./lib/Client";
 
-const isDev = process.env.NODE_ENV === "development";
+import { isDev, ensureEnv } from "./helpers";
+import { OIDCClient } from "./lib/Client";
 
 if (isDev) {
   const parsed = dotenv.config();
   if (parsed.error) throw parsed.error;
 }
 
-const dbUrl = process.env.DB_URL;
-if (!dbUrl) throw new Error("failed to get db URL from environment");
-const sessionSecret = process.env.SESSION_SECRET;
-if (!sessionSecret)
-  throw new Error("failed to get session secret from environment");
-const successRedirect = process.env.SUCCESS_REDIRECT;
-if (!successRedirect) {
-  throw new Error("failed to get redirect urls from environment");
-}
+const [
+  dbUrl,
+  sessionSecret,
+  issuerHost,
+  client_id,
+  client_secret,
+  redirect_uris,
+  scopes
+] = ensureEnv([
+  "DB_URL",
+  "SESSION_SECRET",
+  "OPENID_ENDPOINT",
+  "OPENID_CLIENT_ID",
+  "OPENID_CLIENT_SECRET",
+  "OPENID_REDIRECT_URL",
+  "OPENID_SCOPES"
+]);
 
 const app = express();
 const Store = mongoStore(session);
@@ -38,31 +45,30 @@ app.use(
     }
   })
 );
-app.use(bodyParser.urlencoded({ extended: true }));
+
+// Middleware
+const ensureSession: express.Handler = (req, res, next) => {
+  if (!req.session) return next(createError(400, "no session"));
+  return next();
+};
 
 (async () => {
-  const issuerHost = process.env.OPENID_ENDPOINT || "";
   const client = await OIDCClient.Create(
     {
-      client_id: process.env.OPENID_CLIENT_ID || "",
-      client_secret: process.env.OPENID_CLIENT_SECRET || "",
-      redirect_uris: [process.env.OPENID_REDIRECT_URL || ""],
-      response_types: ["code"],
-      scopes: process.env.OPENID_SCOPES || "openid"
+      client_id,
+      client_secret,
+      scopes,
+      redirect_uris: [redirect_uris],
+      response_types: ["code"]
     },
     issuerHost
   );
-
-  // Middleware
-  const ensureSession: express.Handler = (req, res, next) => {
-    if (!req.session) return next(createError(400, "no session"));
-    return next();
-  };
 
   // Handlers
   app.get("/auth/token", ensureSession, async (req, res, next) => {
     const { code, state } = req.query;
 
+    // Middleware ensures session is set,
     if (!req.session!.state) {
       return next(createError(400, "session missing state"));
     }
@@ -79,7 +85,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
   app.get("/auth/login", ensureSession, (req, res, next) => {
     try {
       const { url, state } = client.authenticate(req);
+
+      // Middleware ensures session is set,
       req.session!.state = state;
+
       return res.redirect(url);
     } catch (error) {
       return next(createError(500, error));
