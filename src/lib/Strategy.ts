@@ -12,10 +12,11 @@ interface IOIDCConfig {
 
 export class OIDCStrategy extends Strategy {
   name: string;
-
+  verifier: any;
   constructor(private client: Client, private scopes: string) {
     super();
     this.name = "passport-openid-connect";
+    this.verifier = generators.codeVerifier();
   }
 
   /**
@@ -40,15 +41,10 @@ export class OIDCStrategy extends Strategy {
       return this.fail("No session");
     }
 
-    const state = generators.state();
-    req.session.auth_state = state;
-    req.session.save(() => {
-      const url = this.client.authorizationUrl({
-        scope: this.scopes,
-        state
-      });
-      this.redirect(url);
+    const url = this.client.authorizationUrl({
+      scope: this.scopes
     });
+    this.redirect(url);
   }
 
   async callback(req: Request, opts: any) {
@@ -59,8 +55,7 @@ export class OIDCStrategy extends Strategy {
     try {
       const tokenSet = await this.client.callback(
         this.client.metadata.redirect_uris![0],
-        params,
-        { state: req.session.auth_state }
+        params
       );
       req.session.token = tokenSet.id_token;
       return this.success(tokenSet.claims());
