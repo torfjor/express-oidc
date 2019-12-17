@@ -1,10 +1,10 @@
 import express from "express";
-import passport from "passport";
 import session from "express-session";
 import dotenv from "dotenv";
 import mongoStore from "connect-mongo";
 import bodyParser from "body-parser";
-import { OIDCStrategy } from "./lib/Strategy";
+import createError from "http-errors";
+import { OIDCClient } from "./lib/Strategy";
 
 const isDev = process.env.NODE_ENV === "development";
 
@@ -19,8 +19,7 @@ const sessionSecret = process.env.SESSION_SECRET;
 if (!sessionSecret)
   throw new Error("failed to get session secret from environment");
 const successRedirect = process.env.SUCCESS_REDIRECT;
-const failureRedirect = process.env.FAILURE_REDIRECT;
-if (!successRedirect || !failureRedirect) {
+if (!successRedirect) {
   throw new Error("failed to get redirect urls from environment");
 }
 
@@ -39,44 +38,11 @@ app.use(
     }
   })
 );
-app.use(passport.initialize());
-app.use(passport.session());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-passport.serializeUser((user, done) => {
-  done(null, user);
-});
-
-passport.deserializeUser((user, done) => {
-  done(null, user);
-});
-
-// Middleware
-const ensureAuthenticated: express.Handler = (req, res, next) => {
-  if (req.isAuthenticated()) return next();
-  res.redirect(failureRedirect);
-};
-
-// Handlers
-app.get(
-  "/callback",
-  passport.authenticate("passport-openid-connect", {
-    successReturnToOrRedirect: "/auth/success",
-    failureRedirect
-  })
-);
-
-app.get("/auth/login", passport.authenticate("passport-openid-connect"));
-
-app.get("/auth/success", ensureAuthenticated, (req, res) => {
-  const token = req.session!.token;
-  res.redirect(successRedirect + `/t?p=${token}`);
-});
-
-// Listen and serve
 (async () => {
   const issuerHost = process.env.OPENID_ENDPOINT || "";
-  const vippsStrategy = await OIDCStrategy.Create(
+  const client = await OIDCClient.Create(
     {
       client_id: process.env.OPENID_CLIENT_ID || "",
       client_secret: process.env.OPENID_CLIENT_SECRET || "",
@@ -86,7 +52,27 @@ app.get("/auth/success", ensureAuthenticated, (req, res) => {
     },
     issuerHost
   );
-  passport.use(vippsStrategy);
+
+  // Handlers
+  app.get("/auth/token", async (req, res, next) => {
+    try {
+      const token = await client.login(req);
+
+      return res.json(token.id_token);
+    } catch (error) {
+      return next(createError(401, error));
+    }
+  });
+
+  app.get("/auth/login", (req, res, next) => {
+    try {
+      const url = client.authenticate(req);
+
+      return res.redirect(url);
+    } catch (error) {
+      return next(createError(500, error));
+    }
+  });
 
   const port = process.env.PORT || 3000;
   app.listen(port, () => {
