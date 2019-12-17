@@ -30,6 +30,8 @@ const [
   "OPENID_SCOPES"
 ]);
 
+console.log(dbUrl);
+
 const app = express();
 const Store = mongoStore(session);
 

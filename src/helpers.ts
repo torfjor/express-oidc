@@ -4,11 +4,17 @@
  * @returns The values found in the environment for `vars`
  */
 export function ensureEnv(vars: string[]): string[] {
-  vars.forEach(v => {
-    if (!process.env[v]) throw new Error(`environment variable ${v} not set`);
+  const values = vars.map(k => {
+    const val = process.env[k];
+
+    if (!val) {
+      throw new Error(`environment variable ${k} not set`);
+    }
+
+    return val;
   });
 
-  return vars;
+  return values;
 }
 
 /**
