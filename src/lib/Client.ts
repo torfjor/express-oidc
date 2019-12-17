@@ -57,7 +57,6 @@ export class OIDCClient {
       params,
       { state: req.session.auth_state }
     );
-    req.session.token = tokenSet.id_token;
     return tokenSet;
   }
 }

@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import mongoStore from "connect-mongo";
 import bodyParser from "body-parser";
 import createError from "http-errors";
-import { OIDCClient } from "./lib/Strategy";
+import { OIDCClient } from "./lib/Client";
 
 const isDev = process.env.NODE_ENV === "development";
 
