@@ -69,6 +69,7 @@ const ensureSession: express.Handler = (req, res, next) => {
   app.use(
     "/auth",
     cors({
+      credentials: true,
       origin: [
         "https://app.divein.no",
         "http://localhost:8080",
