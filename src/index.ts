@@ -101,7 +101,11 @@ const ensureSession: express.Handler = (req, res, next) => {
       // Middleware ensures session is set,
       req.session!.state = state;
 
-      return res.redirect(url);
+      req.session!.save(err => {
+        if (err) return next(createError(500, "failed to save session"));
+
+        return res.redirect(url);
+      });
     } catch (error) {
       return next(createError(500, error));
     }
