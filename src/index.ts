@@ -65,18 +65,23 @@ const ensureSession: express.Handler = (req, res, next) => {
     issuerHost
   );
 
-  // Handlers
+  // Enable cors
+  const allowedOrigins = isDev
+    ? [
+        "https://localhost:3000",
+        "https://127.0.0.1:3000",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+      ]
+    : ["https://app.divein.no"];
   app.use(
     "/auth",
     cors({
       credentials: true,
-      origin: [
-        "https://app.divein.no",
-        "http://localhost:8080",
-        "http://127.0.0.1:8080"
-      ]
+      origin: allowedOrigins
     })
   );
+  // Handlers
   app.get("/auth/token", ensureSession, async (req, res, next) => {
     const { code, state } = req.query;
 
